@@ -231,6 +231,16 @@ router.post('/readMeet', function(req, res) {
       }
       else
       {
+        //上传到hxbase
+        try{
+          //hxbaseMeets.push(JSON.parse(JSON.stringify(result.creater || result.target)));
+          var record = result.creater || result.target;
+          hxbaseMeets.child(record.id).set(JSON.parse(JSON.stringify(record)));
+        }
+        catch(e)
+        {
+          console.log(e);
+        }
         res.json({ppResult: 'ok', ppData: result});
       }
     }
@@ -520,7 +530,7 @@ router.post('/createMeetNo', function(req, res) {
         {
           //上传到hxbase
           try{
-            hxbaseMeets.push(JSON.parse(JSON.stringify(result.meet)));
+            hxbaseMeets.child(result.meet.id).set(JSON.parse(JSON.stringify(result.meet)));
           }
           catch(e)
           {
@@ -595,9 +605,9 @@ router.post('/createMeetClickTarget', function(req, res) {
             }
             else
             {
-              for(var i = 0; i < docs.main.length; i++)
+              for(var i = 0; i < docs.length; i++)
               {
-                if (docs.main[i].username1 == req.body.username || docs.main[i].username2 == req.body.username)
+                if (docs[i].username1 == req.body.username || docs[i].username2 == req.body.username)
                 {
                   //此人已是你好友
                   callback({ppMsg: '此人已是你好友!'}, null);
@@ -647,6 +657,15 @@ router.post('/createMeetClickTarget', function(req, res) {
                       }
                       else
                       {
+                        //上传到hxbase
+                        try{
+                          hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
+                        }
+                        catch(e)
+                        {
+                          console.log(e);
+                        }
+
                         //jpush通知对方
                         client.push().setPlatform('ios', 'android')
                             .setAudience(JPush.alias(req.body.username))
@@ -677,7 +696,7 @@ router.post('/createMeetClickTarget', function(req, res) {
                   {
                     //上传到hxbase
                     try{
-                      hxbaseFriends.push(JSON.parse(JSON.stringify(result)));
+                      hxbaseFriends.child(result.id).set(JSON.parse(JSON.stringify(result)));
                     }
                     catch(e)
                     {
@@ -694,7 +713,7 @@ router.post('/createMeetClickTarget', function(req, res) {
                       {
                         //上传到hxbase
                         try{
-                          hxbaseMeets.push(JSON.parse(JSON.stringify(doc)));
+                          hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
                         }
                         catch(e)
                         {
@@ -812,6 +831,14 @@ router.post('/confirmMeetClickTarget', function(req, res) {
                             }
                             else
                             {
+                              //上传到hxbase
+                              try{
+                                hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
+                              }
+                              catch(e)
+                              {
+                                console.log(e);
+                              }
                               //jpush通知自己和对方
                               client.push().setPlatform('ios', 'android')
                                   .setAudience(JPush.alias(doc.createrUsername, doc.targetUsername))
@@ -958,7 +985,7 @@ router.post('/replyMeetSearchTarget', function(req, res) {
               }
               else
               {
-                if (doc.target.username != req.user.username)
+                if (doc.targetUsername != req.user.username)
                 {
                   next({ppMsg: '没有对应meet!'}, null);
                 }
@@ -980,7 +1007,7 @@ router.post('/replyMeetSearchTarget', function(req, res) {
                       {
                         //上传到hxbase
                         try{
-                          hxbaseMeets.push(JSON.parse(JSON.stringify(doc)));
+                          hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
                         }
                         catch(e)
                         {
@@ -988,7 +1015,7 @@ router.post('/replyMeetSearchTarget', function(req, res) {
                         }
 
                         //取得meet creater信息
-                        User.findOne({username: doc.creater.username}).exec(next);
+                        User.findOne({username: doc.createrUsername}).exec(next);
                       }
                     });
                   }
@@ -1076,7 +1103,7 @@ router.post('/sendMsg', function(req, res){
         {
           //上传到hxbase
           try{
-            hxbaseMessages.push(JSON.parse(JSON.stringify(result)));
+            hxbaseMessages.child(result.id).set(JSON.parse(JSON.stringify(result)));
           }
           catch(e)
           {
@@ -1163,6 +1190,7 @@ router.post('/replyMeetClickTarget', function(req, res) {
       req.body.username,
       req.body.meetId,
       function(err, result){
+        console.log(err);
         if (err)
         {
           res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });

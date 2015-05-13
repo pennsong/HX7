@@ -3,6 +3,11 @@ var moment = require('moment');
 var async = require("async");
 var jwt = require('jwt-simple');
 
+var Firebase = require("firebase");
+var hxbaseMeets = new Firebase("https://hxbase.firebaseio.com/meets");
+var hxbaseFriends = new Firebase("https://hxbase.firebaseio.com/friends");
+var hxbaseMessages = new Firebase("https://hxbase.firebaseio.com/messages");
+
 var UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
@@ -141,8 +146,7 @@ UserSchema.methods.getTargets = function(sex, hair, glasses, clothesType, clothe
                         specialInfoTime: {$gt: new Date(moment().startOf('day'))},
                         lastLocationTime: {$gt: new Date(moment().add(-1, 'd'))},
                         "specialInfo.sex": sex,
-                        username: {$ne: this.username},
-                        username: {$nin: exclusiveArray}
+                        username: {$ne: this.username, $nin: exclusiveArray}
                     },
                     spherical: true
                 }
@@ -246,9 +250,9 @@ UserSchema.methods.createFriend = function(targetUsername, callback) {
                         username1: self.username,
                         nickname1: self.nickname,
                         friendLogo1: self.specialPic,
-                        username1: doc.username,
-                        nickname1: doc.nickname,
-                        friendLogo1: doc.specialPic
+                        username2: doc.username,
+                        nickname2: doc.nickname,
+                        friendLogo2: doc.specialPic
                     },
                     callback
                 );
@@ -291,9 +295,9 @@ UserSchema.methods.createMeetNo = function(
                         createrUsername: self.username,
                         createrNickname: self.username,
                         createrSpecialPic: self.specialPic,
-                        createrUnread: true,
+                        createrUnread: false,
                         status: '待确认',
-                        replyLeft: 2,
+                        replyLeft: 20,
                         mapLoc: {
                             name: mapLocName,
                             address: mapLocAddress,
@@ -430,6 +434,9 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
                                 status: '待回复'
                             }
                         },
+                        {
+                            new: true
+                        },
                         next
                     );
                 }
@@ -515,6 +522,9 @@ UserSchema.methods.replyMeetClickTarget = function(username, meetId, callback){
                             status: '成功'
                         }
                     },
+                    {
+                        new: true
+                    },
                     next);
             },
             //己方meet添加target并修改状态为'成功'
@@ -526,11 +536,16 @@ UserSchema.methods.replyMeetClickTarget = function(username, meetId, callback){
                 //生成朋友
                 else
                 {
+                    //上传到hxbase
+                    hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
                     self.createFriend(username, next);
                 }
             },
             function(result, next)
             {
+                //上传到hxbase
+                hxbaseFriends.child(result.id).set(JSON.parse(JSON.stringify(result)));
+
                 //清空最近选择fake时间
                 self.lastFakeTime = undefined;
                 self.save(next);
@@ -556,6 +571,9 @@ UserSchema.methods.readMeet = function(meetId, callback) {
                             createrUnread: false
                         }
                     },
+                    {
+                        new: true
+                    },
                     callback
                 );
             },
@@ -570,6 +588,9 @@ UserSchema.methods.readMeet = function(meetId, callback) {
                         $set:{
                             targetUnread: false
                         }
+                    },
+                    {
+                        new: true
                     },
                     callback
                 );
