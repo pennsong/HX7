@@ -254,7 +254,24 @@ UserSchema.methods.createFriend = function(targetUsername, callback) {
                         nickname2: doc.nickname,
                         friendLogo2: doc.specialPic
                     },
-                    callback
+                    function(err, result){
+                        if (err)
+                        {
+                            callback(err, null);
+                        }
+                        else
+                        {
+                            //上传到hxbase
+                            try{
+                                hxbaseFriends.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                            }
+                            catch(e)
+                            {
+                                console.log(e);
+                            }
+                            callback(null, result);
+                        }
+                    }
                 );
             }
         }
@@ -313,7 +330,25 @@ UserSchema.methods.createMeetNo = function(
                             clothesStyle: clothesStyle
                         }
                     },
-                    callback
+                    function(err, result)
+                    {
+                        if (err)
+                        {
+                            callback(err, null);
+                        }
+                        else
+                        {
+                            //上传到hxbase
+                            try{
+                                hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                            }
+                            catch(e)
+                            {
+                                console.log(e);
+                            }
+                            callback(null, result);
+                        }
+                    }
                 );
             }
         },
@@ -388,7 +423,25 @@ UserSchema.methods.createMeet = function(mapLocName, mapLocUid, mapLocAddress, u
                                 clothesStyle: result.specialInfo.clothesStyle
                             }
                         },
-                        next
+                        function(err, result)
+                        {
+                            if (err)
+                            {
+                                next(err, null);
+                            }
+                            else
+                            {
+                                //上传到hxbase
+                                try{
+                                    hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                                }
+                                catch(e)
+                                {
+                                    console.log(e);
+                                }
+                                next(null, result);
+                            }
+                        }
                     );
                 }
             }
@@ -437,7 +490,25 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
                         {
                             new: true
                         },
-                        next
+                        function(err, result)
+                        {
+                            if (err)
+                            {
+                                next(err, null);
+                            }
+                            else
+                            {
+                                //上传到hxbase
+                                try{
+                                    hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                                }
+                                catch(e)
+                                {
+                                    console.log(e);
+                                }
+                                next(null, result);
+                            }
+                        }
                     );
                 }
             }
@@ -483,20 +554,60 @@ UserSchema.methods.confirmEachOtherMeet = function(username, meetId, anotherMeet
                                 status: '成功'
                             }
                         },
-                        next
+                        {
+                            new: true
+                        },
+                        function(err, result)
+                        {
+                            console.log(result);
+                            if (err){
+                                next(err, null);
+                            }
+                            else
+                            {
+                                //上传到hxbase
+                                try{
+                                    hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                                }
+                                catch(e)
+                                {
+                                    console.log(e);
+                                }
+                                next(null, result);
+                            }
+                        }
                     );
                 }
             },
             //生成朋友
             function(result, next)
             {
-                this.createFriend(username, next);
+                self.createFriend(username, next);
             },
             //修改对方meet状态为成功
             function(result, next)
             {
-                doc.status = '成功';
-                doc.save(next);
+                anotherMeet.status = '成功';
+                anotherMeet.save(
+                    function(err, result, num)
+                    {
+                        if (err)
+                        {
+                            next(err, null);
+                        }
+                        else{
+                            //上传到hxbase
+                            try{
+                                hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                            }
+                            catch(e)
+                            {
+                                console.log(e);
+                            }
+                            next(null, result);
+                        }
+                    }
+                );
             }
         ],
         callback

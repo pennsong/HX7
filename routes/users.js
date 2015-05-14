@@ -340,7 +340,7 @@ router.post('/createMeetSearchTarget', function(req, res) {
     }
   }
 
-  async.parallel([
+  async.series([
         function(callback){
           //找本人发送待回复的meet中的目标
           req.user.getMeetTargets(function(err, docs){
@@ -528,14 +528,6 @@ router.post('/createMeetNo', function(req, res) {
         }
         else
         {
-          //上传到hxbase
-          try{
-            hxbaseMeets.child(result.meet.id).set(JSON.parse(JSON.stringify(result.meet)));
-          }
-          catch(e)
-          {
-            console.log(e);
-          }
           res.json({ ppResult: 'ok', ppData: result.meet});
         }
       }
@@ -657,15 +649,6 @@ router.post('/createMeetClickTarget', function(req, res) {
                       }
                       else
                       {
-                        //上传到hxbase
-                        try{
-                          hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
-                        }
-                        catch(e)
-                        {
-                          console.log(e);
-                        }
-
                         //jpush通知对方
                         client.push().setPlatform('ios', 'android')
                             .setAudience(JPush.alias(req.body.username))
@@ -694,15 +677,6 @@ router.post('/createMeetClickTarget', function(req, res) {
                   }
                   else
                   {
-                    //上传到hxbase
-                    try{
-                      hxbaseFriends.child(result.id).set(JSON.parse(JSON.stringify(result)));
-                    }
-                    catch(e)
-                    {
-                      console.log(e);
-                    }
-
                     doc.status='成功';
                     doc.save(function(err){
                       if (err)
@@ -711,15 +685,6 @@ router.post('/createMeetClickTarget', function(req, res) {
                       }
                       else
                       {
-                        //上传到hxbase
-                        try{
-                          hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
-                        }
-                        catch(e)
-                        {
-                          console.log(e);
-                        }
-
                         //jpush通知对方
                         client.push().setPlatform('ios', 'android')
                             .setAudience(JPush.alias(req.body.username))
@@ -831,14 +796,6 @@ router.post('/confirmMeetClickTarget', function(req, res) {
                             }
                             else
                             {
-                              //上传到hxbase
-                              try{
-                                hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
-                              }
-                              catch(e)
-                              {
-                                console.log(e);
-                              }
                               //jpush通知自己和对方
                               client.push().setPlatform('ios', 'android')
                                   .setAudience(JPush.alias(doc.createrUsername, doc.targetUsername))
@@ -861,7 +818,7 @@ router.post('/confirmMeetClickTarget', function(req, res) {
                     else
                     {
                       //互发
-                      user.confirmEachOtherMeet(
+                      req.user.confirmEachOtherMeet(
                           req.body.username,
                           req.body.meetId,
                           doc,
@@ -1091,42 +1048,42 @@ router.post('/sendMsg', function(req, res){
     return;
   }
 
-  req.user.sendMsg(
-      req.body.friendUsername,
-      req.body.content,
-      function(err, result){
-        if (err)
-        {
-          res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
-        }
-        else
-        {
-          //上传到hxbase
-          try{
-            hxbaseMessages.child(result.id).set(JSON.parse(JSON.stringify(result)));
-          }
-          catch(e)
-          {
-            console.log(e);
-          }
-
-          client.push().setPlatform('ios', 'android')
-              .setAudience(JPush.alias(req.body.friendUsername))
-              .setNotification('Hi, JPush', JPush.ios(req.user.username + "," + req.user.nickname + ":发来一条消息" ), JPush.android(req.user.username + "," + req.user.nickname + ":发来一条消息", null, 1))
-            //.setMessage(result.meet.id)
-              .setOptions(null, 60)
-              .send(function(err, res) {
-                if (err) {
-                  console.log(err.message);
-                } else {
-                  console.log('Sendno: ' + res.sendno);
-                  console.log('Msg_id: ' + res.msg_id);
-                }
-              });
-          res.json({ ppResult: 'ok', ppData: result });
-        }
-      }
-  );
+  //req.user.sendMsg(
+  //    req.body.friendUsername,
+  //    req.body.content,
+  //    function(err, result){
+  //      if (err)
+  //      {
+  //        res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
+  //      }
+  //      else
+  //      {
+  //        //上传到hxbase
+  //        try{
+  //          hxbaseMessages.child(result.id).set(JSON.parse(JSON.stringify(result)));
+  //        }
+  //        catch(e)
+  //        {
+  //          console.log(e);
+  //        }
+  //
+  //        client.push().setPlatform('ios', 'android')
+  //            .setAudience(JPush.alias(req.body.friendUsername))
+  //            .setNotification('Hi, JPush', JPush.ios(req.user.username + "," + req.user.nickname + ":发来一条消息" ), JPush.android(req.user.username + "," + req.user.nickname + ":发来一条消息", null, 1))
+  //          //.setMessage(result.meet.id)
+  //            .setOptions(null, 60)
+  //            .send(function(err, res) {
+  //              if (err) {
+  //                console.log(err.message);
+  //              } else {
+  //                console.log('Sendno: ' + res.sendno);
+  //                console.log('Msg_id: ' + res.msg_id);
+  //              }
+  //            });
+  //        res.json({ ppResult: 'ok', ppData: result });
+  //      }
+  //    }
+  //);
 });
 
 router.post('/getMsg', function(req, res){
