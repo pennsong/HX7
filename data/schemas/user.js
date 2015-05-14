@@ -241,7 +241,7 @@ UserSchema.methods.createFriend = function(targetUsername, callback) {
             }
             else if (!doc)
             {
-                callback({ppMsg: '没找到对应目标!'}, null);
+                callback({ppMsg: '没有此用户!'}, null);
             }
             else
             {
@@ -314,7 +314,7 @@ UserSchema.methods.createMeetNo = function(
                         createrSpecialPic: self.specialPic,
                         createrUnread: false,
                         status: '待确认',
-                        replyLeft: 20,
+                        replyLeft: 2,
                         mapLoc: {
                             name: mapLocName,
                             address: mapLocAddress,
@@ -457,12 +457,6 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
     async.waterfall([
             function(next)
             {
-                //清空最近选择fake时间
-                self.lastFakeTime = undefined;
-                self.save(next);
-            },
-            function(result, num, next)
-            {
                 //查找target
                 self.model('User').findOne({username: username}, next);
             },
@@ -521,13 +515,7 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
 UserSchema.methods.confirmEachOtherMeet = function(username, meetId, anotherMeet, callback){
     var self = this;
     async.waterfall([
-            //清空最近选择fake时间
             function(next)
-            {
-                self.lastFakeTime = undefined;
-                self.save(next);
-            },
-            function(result, num, next)
             {
                 //查找target
                 self.model('User').findOne({username: username}, next);
@@ -638,7 +626,7 @@ UserSchema.methods.replyMeetClickTarget = function(username, meetId, callback){
                     },
                     next);
             },
-            //己方meet添加target并修改状态为'成功'
+            //修改状态为'成功'
             function(result, next){
                 if (result == null)
                 {

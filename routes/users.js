@@ -184,14 +184,8 @@ router.post('/login', function(req, res) {
   req.assert('password', 'required').notEmpty();
 
   var errors = req.validationErrors();
-  var ppMsg;
   if (errors) {
-    var err = parseError(errors);
-    if (err.errors.username && err.errors.username.type == 'required')
-    {
-      ppMsg = "用户名不能为空!";
-    }
-    res.status(400).json({ ppResult: 'err', ppMsg: ppMsg ? ppMsg : "缺少必填项!", err: err});
+    res.status(400).send({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
     return;
   }
 
@@ -210,49 +204,49 @@ router.post('/login', function(req, res) {
 //auth
 router.all('*', requireAuthentication);
 
-router.post('/readMeet', function(req, res) {
-  req.assert('meetId', 'required').notEmpty();
-  var errors = req.validationErrors();
-  if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
-    return;
-  }
-
-  req.user.readMeet(req.body.meetId, function(err, result){
-    if (err)
-    {
-      res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
-    }
-    else
-    {
-      if (!result.creater && !result.target)
-      {
-        res.status(400).json({ ppResult: 'err', ppMsg: '没找到符合条件的meet!' });
-      }
-      else
-      {
-        //上传到hxbase
-        try{
-          //hxbaseMeets.push(JSON.parse(JSON.stringify(result.creater || result.target)));
-          var record = result.creater || result.target;
-          hxbaseMeets.child(record.id).set(JSON.parse(JSON.stringify(record)));
-        }
-        catch(e)
-        {
-          console.log(e);
-        }
-        res.json({ppResult: 'ok', ppData: result});
-      }
-    }
-  });
-});
+//router.post('/readMeet', function(req, res) {
+//  req.assert('meetId', 'required').notEmpty();
+//  var errors = req.validationErrors();
+//  if (errors) {
+//    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
+//    return;
+//  }
+//
+//  req.user.readMeet(req.body.meetId, function(err, result){
+//    if (err)
+//    {
+//      res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
+//    }
+//    else
+//    {
+//      if (!result.creater && !result.target)
+//      {
+//        res.status(400).json({ ppResult: 'err', ppMsg: '没找到符合条件的meet!' });
+//      }
+//      else
+//      {
+//        //上传到hxbase
+//        try{
+//          //hxbaseMeets.push(JSON.parse(JSON.stringify(result.creater || result.target)));
+//          var record = result.creater || result.target;
+//          hxbaseMeets.child(record.id).set(JSON.parse(JSON.stringify(record)));
+//        }
+//        catch(e)
+//        {
+//          console.log(e);
+//        }
+//        res.json({ppResult: 'ok', ppData: result});
+//      }
+//    }
+//  });
+//});
 
 router.post('/updateLocation', function(req, res) {
   req.assert('lng', 'required').notEmpty();
   req.assert('lat', 'required').notEmpty();
   var errors = req.validationErrors();
   if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
+    res.status(400).json({ ppResult: 'err', ppMsg: "更新位置失败!", err: parseError(errors)});
     return;
   }
 
@@ -269,11 +263,6 @@ router.post('/updateLocation', function(req, res) {
 });
 
 router.post('/getLastLocation', function(req, res) {
-  var errors = req.validationErrors();
-  if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
-    return;
-  }
   res.json({ppResult: 'ok', ppData: { lastLocation: req.user.lastLocation, lastLocationTime: req.user.lastLocationTime}});
 });
 
@@ -289,26 +278,26 @@ router.post('/sendMeetCheck', function(req, res) {
   }
 });
 
-router.post('/searchLoc', function(req, res) {
-  req.assert('keyword', 'required').notEmpty();
-
-  var errors = req.validationErrors();
-  if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
-    return;
-  }
-
-  searchLoc(req.body.keyword, req.user.lastLocation[0], req.user.lastLocation[1], function(err, result){
-    if (err)
-    {
-      res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
-    }
-    else
-    {
-      res.json({ppResult: 'ok', ppData: result });
-    }
-  });
-});
+//router.post('/searchLoc', function(req, res) {
+//  req.assert('keyword', 'required').notEmpty();
+//
+//  var errors = req.validationErrors();
+//  if (errors) {
+//    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
+//    return;
+//  }
+//
+//  searchLoc(req.body.keyword, req.user.lastLocation[0], req.user.lastLocation[1], function(err, result){
+//    if (err)
+//    {
+//      res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
+//    }
+//    else
+//    {
+//      res.json({ppResult: 'ok', ppData: result });
+//    }
+//  });
+//});
 
 router.post('/createMeetSearchTarget', function(req, res) {
   req.assert('sex', 'required').notEmpty();
@@ -621,7 +610,6 @@ router.post('/createMeetClickTarget', function(req, res) {
     }
     else
     {
-      //判断是否互发, 如是则生成朋友并修改对方meet状态为成功
       Meet.findOne(
           {
             createrUsername: req.body.username,
@@ -663,7 +651,7 @@ router.post('/createMeetClickTarget', function(req, res) {
                                 console.log('Msg_id: ' + res.msg_id);
                               }
                             });
-                        res.json({ ppResult: 'ok', ppData: doc });
+                        res.json({ ppResult: 'ok' });
                       }
                     });
               }
@@ -761,7 +749,7 @@ router.post('/confirmMeetClickTarget', function(req, res) {
                 for (var i = 0; i < docs.length; i++){
                   if (docs[i].username1 == req.body.username || docs[i].username2 == req.body.username)
                   {
-                    callback({ppMsg: '此人已是你朋友!'}, null);
+                    callback({ppMsg: '此人已是你好友!'}, null);
                     break;
                   }
                 }
@@ -907,7 +895,7 @@ router.post('/uploadSpecialPic', function(req, res) {
   }
   else
   {
-    res.json({ppResult: req.files.specialPic.name});
+    res.json({ppResult: 'ok', ppData: req.files.specialPic.name});
   }
 });
 
@@ -1038,100 +1026,100 @@ router.post('/replyMeetSearchTarget', function(req, res) {
   );
 });
 
-router.post('/sendMsg', function(req, res){
-  req.assert('friendUsername', 'required').notEmpty();
-  req.assert('content', 'required').notEmpty();
+//router.post('/sendMsg', function(req, res){
+//  req.assert('friendUsername', 'required').notEmpty();
+//  req.assert('content', 'required').notEmpty();
+//
+//  var errors = req.validationErrors();
+//  if (errors) {
+//    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
+//    return;
+//  }
+//
+//  req.user.sendMsg(
+//      req.body.friendUsername,
+//      req.body.content,
+//      function(err, result){
+//        if (err)
+//        {
+//          res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
+//        }
+//        else
+//        {
+//          //上传到hxbase
+//          try{
+//            hxbaseMessages.child(result.id).set(JSON.parse(JSON.stringify(result)));
+//          }
+//          catch(e)
+//          {
+//            console.log(e);
+//          }
+//
+//          client.push().setPlatform('ios', 'android')
+//              .setAudience(JPush.alias(req.body.friendUsername))
+//              .setNotification('Hi, JPush', JPush.ios(req.user.username + "," + req.user.nickname + ":发来一条消息" ), JPush.android(req.user.username + "," + req.user.nickname + ":发来一条消息", null, 1))
+//            //.setMessage(result.meet.id)
+//              .setOptions(null, 60)
+//              .send(function(err, res) {
+//                if (err) {
+//                  console.log(err.message);
+//                } else {
+//                  console.log('Sendno: ' + res.sendno);
+//                  console.log('Msg_id: ' + res.msg_id);
+//                }
+//              });
+//          res.json({ ppResult: 'ok', ppData: result });
+//        }
+//      }
+//  );
+//});
 
-  var errors = req.validationErrors();
-  if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
-    return;
-  }
+//router.post('/getMsg', function(req, res){
+//  req.assert('friendUsername', 'required').notEmpty();
+//
+//  var errors = req.validationErrors();
+//  if (errors) {
+//    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
+//    return;
+//  }
+//  req.user.getMsg(
+//      req.body.friendUsername,
+//      function(err, result){
+//        if (err)
+//        {
+//          res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
+//        }
+//        else
+//        {
+//          res.json({ ppResult: 'ok', ppData: result });
+//        }
+//      }
+//  );
+//});
 
-  //req.user.sendMsg(
-  //    req.body.friendUsername,
-  //    req.body.content,
-  //    function(err, result){
-  //      if (err)
-  //      {
-  //        res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
-  //      }
-  //      else
-  //      {
-  //        //上传到hxbase
-  //        try{
-  //          hxbaseMessages.child(result.id).set(JSON.parse(JSON.stringify(result)));
-  //        }
-  //        catch(e)
-  //        {
-  //          console.log(e);
-  //        }
-  //
-  //        client.push().setPlatform('ios', 'android')
-  //            .setAudience(JPush.alias(req.body.friendUsername))
-  //            .setNotification('Hi, JPush', JPush.ios(req.user.username + "," + req.user.nickname + ":发来一条消息" ), JPush.android(req.user.username + "," + req.user.nickname + ":发来一条消息", null, 1))
-  //          //.setMessage(result.meet.id)
-  //            .setOptions(null, 60)
-  //            .send(function(err, res) {
-  //              if (err) {
-  //                console.log(err.message);
-  //              } else {
-  //                console.log('Sendno: ' + res.sendno);
-  //                console.log('Msg_id: ' + res.msg_id);
-  //              }
-  //            });
-  //        res.json({ ppResult: 'ok', ppData: result });
-  //      }
-  //    }
-  //);
-});
-
-router.post('/getMsg', function(req, res){
-  req.assert('friendUsername', 'required').notEmpty();
-
-  var errors = req.validationErrors();
-  if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
-    return;
-  }
-  req.user.getMsg(
-      req.body.friendUsername,
-      function(err, result){
-        if (err)
-        {
-          res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
-        }
-        else
-        {
-          res.json({ ppResult: 'ok', ppData: result });
-        }
-      }
-  );
-});
-
-router.post('/readMsg', function(req, res){
-  req.assert('friendUsername', 'required').notEmpty();
-
-  var errors = req.validationErrors();
-  if (errors) {
-    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
-    return;
-  }
-
-  req.user.readMsg(
-      req.body.friendUsername,
-      function(err, result){
-        if (err)
-        {
-          res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
-        }
-        else
-        {
-          res.json({ ppResult: 'ok', ppData: result });
-        }
-      }
-  );
-});
+//router.post('/readMsg', function(req, res){
+//  req.assert('friendUsername', 'required').notEmpty();
+//
+//  var errors = req.validationErrors();
+//  if (errors) {
+//    res.status(400).json({ ppResult: 'err', ppMsg: "缺少必填项!", err: parseError(errors)});
+//    return;
+//  }
+//
+//  req.user.readMsg(
+//      req.body.friendUsername,
+//      function(err, result){
+//        if (err)
+//        {
+//          res.status(400).json({ ppResult: 'err', ppMsg: err.ppMsg ? err.ppMsg : null, err: err });
+//        }
+//        else
+//        {
+//          res.json({ ppResult: 'ok', ppData: result });
+//        }
+//      }
+//  );
+//});
 
 router.post('/replyMeetClickTarget', function(req, res) {
   req.assert('username', 'required').notEmpty();
