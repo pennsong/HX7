@@ -7,6 +7,7 @@ var Firebase = require("firebase");
 var hxbaseMeets = new Firebase("https://hxbase.firebaseio.com/meets");
 var hxbaseFriends = new Firebase("https://hxbase.firebaseio.com/friends");
 var hxbaseMessages = new Firebase("https://hxbase.firebaseio.com/messages");
+var request = require('request');
 
 var UserSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true },
@@ -264,6 +265,50 @@ UserSchema.methods.createFriend = function(targetUsername, callback) {
                             //上传到hxbase
                             try{
                                 hxbaseFriends.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                                var fb = new Firebase('https://hxbase.firebaseio.com/online/' + doc.username);
+                                fb.once('value', function(dataSnapshot) {
+                                    //对方不在线时发push消息
+                                    if (!dataSnapshot.val()){
+                                        console.log("离线:" + dataSnapshot.val());
+                                        request(
+                                            {
+                                                url: 'https://api.jpush.cn/v3/push',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Authorization': 'Basic ZGU5Yzc4NWVjZGQ0YjBhMzQ4ZWQ0OWEwOjIyMDViOTZiNTJiMjM4MmMwMDBmMGI0Ng=='
+                                                },
+                                                data: {
+                                                    "platform": "all",
+                                                    "audience" : {
+                                                        "alias" : [doc.username]
+                                                    },
+                                                    "notification" : {
+
+                                                        "android" : {
+                                                            "alert" : "你有新加好友!",
+                                                            "title":"Send to Android",
+                                                            "builder_id":1,
+                                                            "extras" : { "newsid" : 321}
+
+                                                        },
+                                                        "ios" : {
+                                                            "alert" : "你有新加好友!",
+                                                            "sound":"default",
+                                                            "badge":"+1",
+                                                            "extras" : { "newsid" : 321}
+                                                        }
+                                                    },
+                                                    "options" : {
+                                                        "time_to_live" : 60,"apns_production":false
+                                                    }
+                                                }
+                                            },
+                                            function(error, response, body){
+
+                                            }
+                                        );
+                                    }
+                                });
                             }
                             catch(e)
                             {
@@ -434,6 +479,50 @@ UserSchema.methods.createMeet = function(mapLocName, mapLocUid, mapLocAddress, u
                                 //上传到hxbase
                                 try{
                                     hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                                    var fb = new Firebase('https://hxbase.firebaseio.com/online/' + result.targetUsername);
+                                    fb.once('value', function(dataSnapshot) {
+                                        //对方不在线时发push消息
+                                        if (!dataSnapshot.val()){
+                                            console.log("离线:" + dataSnapshot.val());
+                                            request(
+                                                {
+                                                    url: 'https://api.jpush.cn/v3/push',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Authorization': 'Basic ZGU5Yzc4NWVjZGQ0YjBhMzQ4ZWQ0OWEwOjIyMDViOTZiNTJiMjM4MmMwMDBmMGI0Ng=='
+                                                    },
+                                                    data: {
+                                                        "platform": "all",
+                                                        "audience" : {
+                                                            "alias" : [result.targetUsername]
+                                                        },
+                                                        "notification" : {
+
+                                                            "android" : {
+                                                                "alert" : "你收到新的邀请!",
+                                                                "title":"Send to Android",
+                                                                "builder_id":1,
+                                                                "extras" : { "newsid" : 321}
+
+                                                            },
+                                                            "ios" : {
+                                                                "alert" : "你收到新的邀请!",
+                                                                "sound":"default",
+                                                                "badge":"+1",
+                                                                "extras" : { "newsid" : 321}
+                                                            }
+                                                        },
+                                                        "options" : {
+                                                            "time_to_live" : 60,"apns_production":false
+                                                        }
+                                                    }
+                                                },
+                                                function(error, response, body){
+
+                                                }
+                                            );
+                                        }
+                                    });
                                 }
                                 catch(e)
                                 {
@@ -495,6 +584,50 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
                                 //上传到hxbase
                                 try{
                                     hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+                                    var fb = new Firebase('https://hxbase.firebaseio.com/online/' + result.targetUsername);
+                                    fb.once('value', function(dataSnapshot) {
+                                        //对方不在线时发push消息
+                                        if (!dataSnapshot.val()){
+                                            console.log("离线:" + dataSnapshot.val());
+                                            request(
+                                                {
+                                                    url: 'https://api.jpush.cn/v3/push',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        'Authorization': 'Basic ZGU5Yzc4NWVjZGQ0YjBhMzQ4ZWQ0OWEwOjIyMDViOTZiNTJiMjM4MmMwMDBmMGI0Ng=='
+                                                    },
+                                                    data: {
+                                                        "platform": "all",
+                                                        "audience" : {
+                                                            "alias" : [result.targetUsername]
+                                                        },
+                                                        "notification" : {
+
+                                                            "android" : {
+                                                                "alert" : "你收到新的邀请!",
+                                                                "title":"Send to Android",
+                                                                "builder_id":1,
+                                                                "extras" : { "newsid" : 321}
+
+                                                            },
+                                                            "ios" : {
+                                                                "alert" : "你收到新的邀请!",
+                                                                "sound":"default",
+                                                                "badge":"+1",
+                                                                "extras" : { "newsid" : 321}
+                                                            }
+                                                        },
+                                                        "options" : {
+                                                            "time_to_live" : 60,"apns_production":false
+                                                        }
+                                                    }
+                                                },
+                                                function(error, response, body){
+
+                                                }
+                                            );
+                                        }
+                                    });
                                 }
                                 catch(e)
                                 {

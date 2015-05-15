@@ -673,6 +673,15 @@ router.post('/createMeetClickTarget', function(req, res) {
                       }
                       else
                       {
+                        //上传到hxbase
+                        try{
+                          hxbaseMeets.child(doc.id).set(JSON.parse(JSON.stringify(doc)));
+                        }
+                        catch(e)
+                        {
+                          console.log(e);
+                        }
+
                         //jpush通知对方
                         client.push().setPlatform('ios', 'android')
                             .setAudience(JPush.alias(req.body.username))
