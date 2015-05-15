@@ -358,7 +358,6 @@ UserSchema.methods.createMeetNo = function(
                         createrUsername: self.username,
                         createrNickname: self.username,
                         createrSpecialPic: self.specialPic,
-                        createrUnread: false,
                         status: '待确认',
                         replyLeft: 2,
                         mapLoc: {
@@ -447,11 +446,9 @@ UserSchema.methods.createMeet = function(mapLocName, mapLocUid, mapLocAddress, u
                             createrUsername: self.username,
                             createrNickname: self.nickname,
                             createrSpecialPic: self.specialPic,
-                            createrUnread: false,
                             targetUsername: result.username,
                             targetNickname: result.nickname,
                             targetSpecialPic: result.specialPic,
-                            targetUnread: true,
                             status: '待回复',
                             replyLeft: 2,
                             mapLoc: {
@@ -479,7 +476,8 @@ UserSchema.methods.createMeet = function(mapLocName, mapLocUid, mapLocAddress, u
                             {
                                 //上传到hxbase
                                 try{
-                                    hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
+				    result.targetUnread = true;
+				    hxbaseMeets.child(result.id).set(JSON.parse(JSON.stringify(result)));
                                     var fb = new Firebase('https://hxbase.firebaseio.com/online/' + result.targetUsername);
                                     fb.once('value', function(dataSnapshot) {
                                         //对方不在线时发push消息
@@ -568,7 +566,6 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
                                 targetUsername: result.username,
                                 targetNickname: result.username,
                                 targetSpecialPic: result.specialPic,
-                                targetUnread: false,
                                 status: '待回复'
                             }
                         },
@@ -674,7 +671,6 @@ UserSchema.methods.confirmEachOtherMeet = function(username, meetId, anotherMeet
                                 targetUsername: result.username,
                                 targetNickname: result.username,
                                 targetSpecialPic: result.specialPic,
-                                targetUnread: false,
                                 status: '成功'
                             }
                         },
@@ -768,6 +764,9 @@ UserSchema.methods.replyMeetClickTarget = function(username, meetId, callback){
                 {
                     next({ppMsg: '没有对应meet!'}, null);
                 }
+		else if (moment(result.created).add(1, 'minutes').isBefore(moment())){
+                    next({ppMsg: '此邀请已过期!'}, null);
+		}
                 //生成朋友
                 else
                 {
@@ -786,51 +785,6 @@ UserSchema.methods.replyMeetClickTarget = function(username, meetId, callback){
                 self.save(next);
             }
         ],
-        callback
-    );
-};
-
-UserSchema.methods.readMeet = function(meetId, callback) {
-    var self = this;
-    async.parallel({
-            creater: function(callback)
-            {
-                self.model('Meet').findOneAndUpdate(
-                    {
-                        _id: meetId,
-                        createrUsername: self.username,
-                        createrUnread: true
-                    },
-                    {
-                        $set:{
-                            createrUnread: false
-                        }
-                    },
-                    {
-                        new: true
-                    },
-                    callback
-                );
-            },
-            target: function(callback){
-                self.model('Meet').findOneAndUpdate(
-                    {
-                        _id: meetId,
-                        targetUsername: self.username,
-                        targetUnread: true
-                    },
-                    {
-                        $set:{
-                            targetUnread: false
-                        }
-                    },
-                    {
-                        new: true
-                    },
-                    callback
-                );
-            }
-        },
         callback
     );
 };
