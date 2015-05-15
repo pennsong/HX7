@@ -637,20 +637,6 @@ router.post('/createMeetClickTarget', function(req, res) {
                       }
                       else
                       {
-                        //jpush通知对方
-                        client.push().setPlatform('ios', 'android')
-                            .setAudience(JPush.alias(req.body.username))
-                            .setNotification('Hi, JPush', JPush.ios('ios alert'), JPush.android('android alert', null, 1))
-                          //.setMessage(doc.id)
-                            .setOptions(null, 60)
-                            .send(function(err, res) {
-                              if (err) {
-                                console.log(err.message);
-                              } else {
-                                console.log('Sendno: ' + res.sendno);
-                                console.log('Msg_id: ' + res.msg_id);
-                              }
-                            });
                         res.json({ ppResult: 'ok' });
                       }
                     });
@@ -681,21 +667,6 @@ router.post('/createMeetClickTarget', function(req, res) {
                         {
                           console.log(e);
                         }
-
-                        //jpush通知对方
-                        client.push().setPlatform('ios', 'android')
-                            .setAudience(JPush.alias(req.body.username))
-                            .setNotification('Hi, JPush', JPush.ios('ios alert'), JPush.android('android alert', null, 1))
-                          //.setMessage(doc.id)
-                            .setOptions(null, 60)
-                            .send(function(err, res) {
-                              if (err) {
-                                console.log(err.message);
-                              } else {
-                                console.log('Sendno: ' + res.sendno);
-                                console.log('Msg_id: ' + res.msg_id);
-                              }
-                            });
                         res.json({ ppResult: 'ok'});
                       }
                     });
@@ -793,20 +764,6 @@ router.post('/confirmMeetClickTarget', function(req, res) {
                             }
                             else
                             {
-                              //jpush通知自己和对方
-                              client.push().setPlatform('ios', 'android')
-                                  .setAudience(JPush.alias(doc.createrUsername, doc.targetUsername))
-                                  .setNotification('Hi, JPush', JPush.ios('ios alert'), JPush.android('android alert', null, 1))
-                                //.setMessage(result.meet.id)
-                                  .setOptions(null, 60)
-                                  .send(function(err, res) {
-                                    if (err) {
-                                      console.log(err.message);
-                                    } else {
-                                      console.log('Sendno: ' + res.sendno);
-                                      console.log('Msg_id: ' + res.msg_id);
-                                    }
-                                  });
                               res.json({ ppResult: 'ok', ppData: doc });
                             }
                           }
@@ -1151,19 +1108,6 @@ router.post('/replyMeetClickTarget', function(req, res) {
         }
         else
         {
-          client.push().setPlatform('ios', 'android')
-              .setAudience(JPush.alias(req.body.username))
-              .setNotification('Hi, JPush', JPush.ios('ios alert'), JPush.android('android alert', null, 1))
-            //.setMessage(result.meet.id)
-              .setOptions(null, 60)
-              .send(function(err, res) {
-                if (err) {
-                  console.log(err.message);
-                } else {
-                  console.log('Sendno: ' + res.sendno);
-                  console.log('Msg_id: ' + res.msg_id);
-                }
-              });
           res.json({ ppResult: 'ok' });
         }
       }

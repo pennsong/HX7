@@ -273,11 +273,12 @@ UserSchema.methods.createFriend = function(targetUsername, callback) {
                                         request(
                                             {
                                                 url: 'https://api.jpush.cn/v3/push',
+                                                method: 'POST',
                                                 headers: {
                                                     'Content-Type': 'application/json',
                                                     'Authorization': 'Basic ZGU5Yzc4NWVjZGQ0YjBhMzQ4ZWQ0OWEwOjIyMDViOTZiNTJiMjM4MmMwMDBmMGI0Ng=='
                                                 },
-                                                data: {
+                                                json: {
                                                     "platform": "all",
                                                     "audience" : {
                                                         "alias" : [doc.username]
@@ -483,15 +484,16 @@ UserSchema.methods.createMeet = function(mapLocName, mapLocUid, mapLocAddress, u
                                     fb.once('value', function(dataSnapshot) {
                                         //对方不在线时发push消息
                                         if (!dataSnapshot.val()){
-                                            console.log("离线:" + dataSnapshot.val());
+                                            console.log("离线:" + dataSnapshot.val() + '"' + result.targetUsername + '"');
                                             request(
                                                 {
                                                     url: 'https://api.jpush.cn/v3/push',
+                                                    method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
                                                         'Authorization': 'Basic ZGU5Yzc4NWVjZGQ0YjBhMzQ4ZWQ0OWEwOjIyMDViOTZiNTJiMjM4MmMwMDBmMGI0Ng=='
                                                     },
-                                                    data: {
+                                                    json: {
                                                         "platform": "all",
                                                         "audience" : {
                                                             "alias" : [result.targetUsername]
@@ -518,7 +520,7 @@ UserSchema.methods.createMeet = function(mapLocName, mapLocUid, mapLocAddress, u
                                                     }
                                                 },
                                                 function(error, response, body){
-
+                                                    console.log(body);
                                                 }
                                             );
                                         }
@@ -592,11 +594,12 @@ UserSchema.methods.confirmMeet = function(username, meetId, callback){
                                             request(
                                                 {
                                                     url: 'https://api.jpush.cn/v3/push',
+                                                    method: 'POST',
                                                     headers: {
                                                         'Content-Type': 'application/json',
                                                         'Authorization': 'Basic ZGU5Yzc4NWVjZGQ0YjBhMzQ4ZWQ0OWEwOjIyMDViOTZiNTJiMjM4MmMwMDBmMGI0Ng=='
                                                     },
-                                                    data: {
+                                                    json: {
                                                         "platform": "all",
                                                         "audience" : {
                                                             "alias" : [result.targetUsername]
