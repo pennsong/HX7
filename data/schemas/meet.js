@@ -12,6 +12,7 @@ var MeetSchema = new mongoose.Schema({
     targetNickname: String,
     targetSpecialPic: String,
     targetUnread: Boolean,
+    confirmTime: Date,
     status: {
         type: String,
         enum: ['待确认', '待回复', '成功'],
@@ -65,6 +66,11 @@ var MeetSchema = new mongoose.Schema({
 
 MeetSchema.virtual('created')
     .get(function () {
-        return this._id.getTimestamp();
+        if (this.confirmTime) {
+            return this.confirmTime;
+        } else {
+            return this._id.getTimestamp();
+        }
     });
+
 module.exports = MeetSchema;
